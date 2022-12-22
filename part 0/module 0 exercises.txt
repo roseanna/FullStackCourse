@@ -1,0 +1,27 @@
+0.4
+https://studies.cs.helsinki.fi/exampleapp/notes
+sequenceDiagram
+browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/notes
+server->>browser: HTML doc
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+server->>browser: CSS file
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.js
+server->>browser: JS file
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+server->>browser: JSON file
+
+0.5
+sequenceDiagram
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa
+server->>browser: HTML doc
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+server->>browser: CSS file
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+server->>browser: JS file
+browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+server->>browser: JSON file
+
+0.6
+sequenceDiagram
+browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
