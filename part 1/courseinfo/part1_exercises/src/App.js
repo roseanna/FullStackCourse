@@ -1,14 +1,9 @@
-const Header = (props) => (
-  <h1>{props.course}</h1>
-)
-
-const Part = (props) => (
-  <p>{props.part.name} {props.part.exercises}</p>
-)
+const Header = (props) => ( <h1>{props.course}</h1> )
+const Part = (props) => ( <p>{props.part.name} {props.part.exercises}</p> )
 
 const Content = (props) => {
-  console.log(props)
   const [part1, part2, part3] = props.parts
+
   return (
     <div> 
       <Part part={part1}/>
@@ -19,10 +14,9 @@ const Content = (props) => {
 }
 
 const Total = (props) => {
-  let total = 0
-  props.parts.forEach(part => {
-    total += part.exercises
-  });
+  const total = props.parts.reduce((total, part) => {
+    return total + part.exercises
+  }, 0)
 
   return (
     <p>Number of exercises {total}</p>
