@@ -1,43 +1,9 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-
-const Person = ({name, number}) => { return <div>{name} {number}</div> }
-
-const Persons = ({filter, persons}) => {
-  const filteredList = () => {
-    // filter has no value, show all
-    if (filter === '') {
-      return persons.map((person) => <Person key={person.id} name={person.name} number={person.number}/>)
-    }
-
-    // filter has a value, show filtered
-    const filtered = persons.filter((person) => {
-      return person.name.includes(filter)
-    })
-    return filtered.map((person) => <Person key={person.id} name={person.name} number={person.number}/>)
-  }
-  return filteredList()
-}
-
-const Filter = ({handleChange}) => {
-  return (
-    <div>
-      filter shown with <input onChange={handleChange}/>
-    </div>
-  )
-}
-
-const PersonForm = ({handleNameChange, handleNumberChange, handleSubmit, newName, newNumber}) => {
-  return (
-    <form onSubmit={handleSubmit}>
-    <div>
-      name: <input value={newName} onChange={handleNameChange}/>
-      number: <input value={newNumber} onChange={handleNumberChange}/>
-      <button type="submit">add</button>
-    </div>
-    </form>
-  )
-}
+import Persons from './components/Persons'
+import PersonForm from './components/PersonForm'
+import Filter from './components/Filter'
+import personService from './services/person'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -57,16 +23,34 @@ const App = () => {
     })
     // not a duplicate
     if (duplicates.length == 0) {
-      setPersons(persons.concat({
-        name: newName, 
+      const newPerson = {
+        name: newName,
         number: newNumber
-      }))
+      }
+      personService
+        .create(newPerson)
+        .then(response => {      
+          setPersons(persons.concat(response))
+        })
+        .catch((error) => console.log(error))
+
       // reset the newName to empty string
       setNewName('')
       setNewNumber('')
     }
+
+    // duplicate is found
     else {
-      alert(newName + ' is already added to the phonebook')
+      const confirm = window.confirm(`${newName} is already added to phonebook, replace the old number with the new one?`)
+      if (confirm) {
+        const newPerson = {...duplicates[0], number: newNumber}
+        personService
+          .update(duplicates[0].id, newPerson)
+          .then((updatedPerson) => {
+            const updatedList = persons.map((p) => p.id === duplicates[0].id ? updatedPerson : p)
+            setPersons(updatedList)
+          })
+      } 
     }
   }
 
@@ -82,14 +66,22 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Filter handleChange={handleFilterChange}/>
+      <Filter 
+        handleChange={handleFilterChange}/>
 
       <h2>add a new</h2>
-      <PersonForm handleNameChange={handleNameChange} handleNumberChange={handleNumberChange}
-      handleSubmit={handleSubmit} newName={newName} newNumber={newNumber}/>
+      <PersonForm 
+        handleNameChange={handleNameChange} 
+        handleNumberChange={handleNumberChange}
+        handleSubmit={handleSubmit} 
+        newName={newName} 
+        newNumber={newNumber} />
 
       <h2>Numbers</h2>
-      <Persons filter={filter} persons={persons}/>
+      <Persons 
+        filter={filter} 
+        persons={persons} 
+        setPersons={setPersons}/>
     </div>
   )
 }
