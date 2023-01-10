@@ -9,18 +9,33 @@ const Person = ({ name, number, deletePerson, id }) => {
   </div>); 
 };
 
-const Persons = ({ filter, persons, setPersons, id }) => {
+const Persons = ({ filter, persons, setPersons, id, setIsSuccess, setMessage }) => {
 
   const deletePerson = (id) => {
     if (window.confirm("Are you sure?")) {
       const request = personService.deletePhone(id)
       request.then(
         (response) => {
+          setIsSuccess(true)
+          setMessage(`Person ${id} was deleted successfully`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)    
+
           const updatedPersons = persons.filter((p) => { return p.id !== id })
           setPersons(updatedPersons)  
         }
       )
-      .catch((error) => console.log(error))
+      .catch((error) => {
+        setIsSuccess(false)
+        setMessage(`Person ${id} was not found`)
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)    
+        const updatedPersons = persons.filter((p) => { return p.id !== id })
+        setPersons(updatedPersons)  
+
+      })
     }
   }
 
