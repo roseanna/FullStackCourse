@@ -17,12 +17,3 @@ content-type: application/json
     "name": "John Helen",
     "number": "040-123456"
 }
-
-###
-POST http://localhost:3001/api/persons/ HTTP/1.1
-content-type: application/json
-
-{
-    "name": "John Helen",
-    "number": ""
-}

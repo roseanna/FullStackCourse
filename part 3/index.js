@@ -3,6 +3,12 @@ const app = express()
 
 app.use(express.json())
 
+const morgan = require('morgan')
+morgan.token("data", (req, res) => {
+    return JSON.stringify(req.body)
+})
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
+
 let phonebook = [
     { 
       "id": 1,
@@ -84,13 +90,15 @@ app.post('/api/persons', (request, response) => {
 
     
     const newPerson = {
+        id: generateID(),
         name: name,
-        number: number,
-        id: generateID()
+        number: number
     }
 
     console.log(newPerson)
     phonebook = phonebook.concat(newPerson)
+    console.log(phonebook)
+    response.end()
 })
 
 app.delete('/api/persons/:id', (request, response) => {
