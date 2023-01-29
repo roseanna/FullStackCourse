@@ -1,6 +1,6 @@
 const express = require('express')
+require('dotenv').config()
 const app = express()
-
 app.use(express.json())
 
 const morgan = require('morgan')
@@ -9,54 +9,63 @@ morgan.token("data", (req, res) => {
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
+const Person = require('./models/person')
+
 let phonebook = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
+    // { 
+    //   "id": 1,
+    //   "name": "Arto Hellas", 
+    //   "number": "040-123456"
+    // },
+    // { 
+    //   "id": 2,
+    //   "name": "Ada Lovelace", 
+    //   "number": "39-44-5323523"
+    // },
+    // { 
+    //   "id": 3,
+    //   "name": "Dan Abramov", 
+    //   "number": "12-43-234345"
+    // },
+    // { 
+    //   "id": 4,
+    //   "name": "Mary Poppendieck", 
+    //   "number": "39-23-6423122"
+    // }
 ]
 
 app.get('/info', (request, response) => {
-    const phoneBookCount = phonebook.length
-    const infoValue = 
-    `<div>Phonebook has info for ${phoneBookCount} people </div>
-    <p>${new Date()}</p>`
-
-    console.log(infoValue)
-    response.send(infoValue)
+    Person.find({}).then(persons => {
+        console.log('get', persons)
+        const phoneBookCount = persons.length
+        const infoValue = 
+        `<div>Phonebook has info for ${phoneBookCount} people </div>
+        <p>${new Date()}</p>`    
+        response.json(infoValue)
+    })
 })
 
 app.get('/api/persons', (request, response) => {
-    response.json(phonebook)
+    Person.find({}).then(persons => {
+        console.log('get', persons)
+        response.json(persons)
+    })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = phonebook.find((person) => person.id === id)
+    Persons.findById(request.params.id).then(note => {
+        response.json(note)
+    })
+    // const id = Number(request.params.id)
+    // const person = phonebook.find((person) => person.id === id)
 
-    if (person) {
-        response.send(JSON.stringify(person))
-    } else {
-        response.status(404).json({
-            error: 'person not found'
-        })
-    }
+    // if (person) {
+    //     response.send(JSON.stringify(person))
+    // } else {
+    //     response.status(404).json({
+    //         error: 'person not found'
+    //     })
+    // }
 })
 
 const generateID = () => {
@@ -89,24 +98,28 @@ app.post('/api/persons', (request, response) => {
     }
 
     
-    const newPerson = {
+    const newPerson = new Person ({
         id: generateID(),
         name: name,
         number: number
-    }
-
-    console.log(newPerson)
-    phonebook = phonebook.concat(newPerson)
-    console.log(phonebook)
-    response.end()
+    })
+    newPerson.save().then(note => {
+        response.json(note)
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const newPhonebook = phonebook.filter(p => p.id !== id)
-    phonebook = newPhonebook
-    console.log('new phone book', newPhonebook)
-    response.status(204).end()
+    console.log(request.params.id)
+    Person.deleteOne({id: Number(request.params.id)}, function(err, res) {
+        console.log('res', res)
+        if (err) return handleError(err);
+    })
+
+    // const id = Number(request.params.id)
+    // const newPhonebook = phonebook.filter(p => p.id !== id)
+    // phonebook = newPhonebook
+    // console.log('new phone book', newPhonebook)
+    // response.status(204).end()
 })
 
 const PORT = 3001
