@@ -53,19 +53,11 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    Persons.findById(request.params.id).then(note => {
+    Person.findById(request.params.id)
+    .then(note => {
         response.json(note)
     })
-    // const id = Number(request.params.id)
-    // const person = phonebook.find((person) => person.id === id)
-
-    // if (person) {
-    //     response.send(JSON.stringify(person))
-    // } else {
-    //     response.status(404).json({
-    //         error: 'person not found'
-    //     })
-    // }
+    .catch(error => next(error))
 })
 
 const generateID = () => {
@@ -82,7 +74,7 @@ app.post('/api/persons', (request, response) => {
     } 
 
     const name = body.name
-    const number = body.number
+    const number = body.phone
 
     if (name.trim().length == 0 || number.trim().length == 0) {
         response.status(404).json({
@@ -90,30 +82,43 @@ app.post('/api/persons', (request, response) => {
         })
     }
 
-    const duplicate = phonebook.find(p => p.name === name)
-    if (duplicate) {
-        response.status(404).json({
-            error: 'name must be unique'
-        })
-    }
-
-    
-    const newPerson = new Person ({
-        id: generateID(),
-        name: name,
-        number: number
-    })
-    newPerson.save().then(note => {
-        response.json(note)
-    })
+    Person.find({name: name})
+    .then(person => {
+        if (person) {
+            const newPerson = {
+                name: name,
+                phone: number        
+            }
+            console.log('person found', person[0]._id.valueOf())
+            Person.findByIdAndUpdate(person[0]._id.valueOf(), newPerson, {new:true})
+            .then(updatedPerson => {
+                console.log('updated person', updatedPerson)
+                response.json(updatedPerson)
+            })
+            .catch(error => next(error))
+        }
+        else {
+            const newPerson = new Person ({
+                name: name,
+                phone: number
+            })
+            
+            newPerson.save().then(note => {
+                response.json(note)
+            })
+            .catch(error => next(error))
+        }
+    })  
+    .catch(error => next(error)) 
 })
 
 app.delete('/api/persons/:id', (request, response) => {
     console.log(request.params.id)
-    Person.deleteOne({id: Number(request.params.id)}, function(err, res) {
-        console.log('res', res)
-        if (err) return handleError(err);
+    Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+        response.status(204).end()
     })
+    .catch(error => next(error))
 
     // const id = Number(request.params.id)
     // const newPhonebook = phonebook.filter(p => p.id !== id)
@@ -121,6 +126,21 @@ app.delete('/api/persons/:id', (request, response) => {
     // console.log('new phone book', newPhonebook)
     // response.status(204).end()
 })
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint '})
+}
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformed id' })
+    }
+    next(error)
+}
+app.use(errorHandler)
 
 const PORT = 3001
 app.listen(PORT, () => {
